@@ -10,6 +10,7 @@
 
 #include "Rtc.h"
 #include "LcdDisplay.h"
+#include "LedMatrix.h"
 
 // ================================
 // 定数定義
@@ -24,6 +25,7 @@
 #define LED_DIN 6
 #define LED_CS 5
 #define LED_CLK 4
+#define DEFAULT_LED_MATRIX_INTENSITY 8
 #define BUZZER_PIN 3
 #define IR_REMOTE_RECEIVER 13
 
@@ -33,6 +35,7 @@
 
 Rtc rtc;
 LcdDisplay lcd(LCD_RS, LCD_EN, LCD_D4, LCD_D5, LCD_D6, LCD_D7);
+LedMatrix ledMatrix(LED_DIN, LED_CLK, LED_CS, 1);
 // ChannelManager channelManager(lcd);
 // LEDMatrix ledMatrix; // 仮: 16x16バッファ管理クラス
 // LEDMatrixManager ledManager(ledMatrix);
@@ -43,9 +46,20 @@ LcdDisplay lcd(LCD_RS, LCD_EN, LCD_D4, LCD_D5, LCD_D6, LCD_D7);
 // ================================
 // 関数群
 // ================================
+// 現在時刻をLCDにうつす
 void displayCurrentTime()
 {
     lcd.printText(0, 0, rtc.getFormattedTime());
+}
+// 一秒ごとにLCDに映る時刻を更新
+void checkAndUpdateDisplay()
+{
+    static unsigned long lastUpdate = 0;
+    if (millis() - lastUpdate >= 1000)
+    {
+        lastUpdate = millis();
+        displayCurrentTime();
+    }
 }
 
 // ================================
@@ -67,7 +81,12 @@ void setup()
     Serial.println("RTCの初期化に成功しました");
     // initialize lcd display
     lcd.begin();
-    // 現在時刻の表示
+    // initialize led matrix
+    ledMatrix.begin();
+    ledMatrix.setIntensity(DEFAULT_LED_MATRIX_INTENSITY);
+    // kari
+    ledMatrix.displaySmiley(true);
+
     displayCurrentTime();
 }
 
@@ -76,4 +95,35 @@ void setup()
 // ================================
 void loop()
 {
+    checkAndUpdateDisplay();
+    ledMatrix.update();
+
+    // kari
+    static unsigned long lastChange = 0;
+    if (millis() - lastChange > 10000)
+    {
+        lastChange = millis();
+
+        switch (random(6))
+        {
+        case 0:
+            ledMatrix.startSineWave(50, 3);
+            break;
+        case 1:
+            ledMatrix.startWaterRipple(70);
+            break;
+        case 2:
+            ledMatrix.startParticleWave(60);
+            break;
+        case 3:
+            ledMatrix.startMatrixRain(80);
+            break;
+        case 4:
+            ledMatrix.startFireworks(100);
+            break;
+        case 5:
+            ledMatrix.startPlasmaWave(40);
+            break;
+        }
+    }
 }
