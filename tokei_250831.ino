@@ -11,6 +11,7 @@
 #include "Rtc.h"
 #include "LcdDisplay.h"
 #include "LedMatrix.h"
+#include "PassiveBuzzer.h"
 
 // ================================
 // 定数定義
@@ -25,8 +26,10 @@
 #define LED_DIN 6
 #define LED_CS 5
 #define LED_CLK 4
-#define DEFAULT_LED_MATRIX_INTENSITY 8
+#define DEFAULT_LED_MATRIX_INTENSITY 1
+
 #define BUZZER_PIN 3
+
 #define IR_REMOTE_RECEIVER 13
 
 // ================================
@@ -36,6 +39,8 @@
 Rtc rtc;
 LcdDisplay lcd(LCD_RS, LCD_EN, LCD_D4, LCD_D5, LCD_D6, LCD_D7);
 LedMatrix ledMatrix(LED_DIN, LED_CLK, LED_CS, 1);
+PassiveBuzzer buzzer(BUZZER_PIN);
+
 // ChannelManager channelManager(lcd);
 // LEDMatrix ledMatrix; // 仮: 16x16バッファ管理クラス
 // LEDMatrixManager ledManager(ledMatrix);
@@ -49,7 +54,7 @@ LedMatrix ledMatrix(LED_DIN, LED_CLK, LED_CS, 1);
 // 現在時刻をLCDにうつす
 void displayCurrentTime()
 {
-    lcd.printText(0, 0, rtc.getFormattedTime());
+    lcd.printText(0, 1, rtc.getFormattedTime());
 }
 // 一秒ごとにLCDに映る時刻を更新
 void checkAndUpdateDisplay()
@@ -84,8 +89,10 @@ void setup()
     // initialize led matrix
     ledMatrix.begin();
     ledMatrix.setIntensity(DEFAULT_LED_MATRIX_INTENSITY);
-    // kari
+    // TODO : kari
+    lcd.printText(0, 0, "Miyuu is No.1!");
     ledMatrix.displaySmiley(true);
+    // buzzer.playSuccess();
 
     displayCurrentTime();
 }
@@ -97,6 +104,7 @@ void loop()
 {
     checkAndUpdateDisplay();
     ledMatrix.update();
+    buzzer.update();
 
     // kari
     static unsigned long lastChange = 0;
